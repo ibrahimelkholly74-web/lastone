@@ -8,6 +8,112 @@ from sklearn.ensemble import RandomForestRegressor
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Laptop Price Predictor", page_icon="💻", layout="centered")
 
+# ── Users (username: password) — change these! ────────────────────────────────
+USERS = {
+    "admin":  "admin123",
+    "hema":   "hema2024",
+    "shop1":  "shop1pass",
+}
+
+# ── Login CSS ──────────────────────────────────────────────────────────────────
+LOGIN_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Cairo:wght@400;700;800&display=swap');
+html, body, [class*="css"] {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1035;
+    color: #ffffff;
+}
+.block-container { max-width: 420px !important; padding: 4rem 2rem !important; }
+.login-box {
+    background: #261e4a;
+    border: 2px solid #00e5ff44;
+    border-radius: 28px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 12px 40px #00e5ff18;
+    text-align: center;
+}
+.login-icon { font-size: 3.5rem; animation: bounce 2s infinite; display:block; margin-bottom: 0.5rem; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.login-title {
+    font-size: 1.8rem; font-weight: 900;
+    background: linear-gradient(135deg, #00e5ff, #00ff9d, #ffea00);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 0.3rem;
+}
+.login-sub { color: #aaa; font-size: 0.9rem; margin-bottom: 1.5rem; }
+.stTextInput > div > div > input {
+    background: #1a1035 !important;
+    border: 2px solid #00e5ff44 !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    padding: 0.7rem 1rem !important;
+}
+.stTextInput > div > div > input:focus {
+    border-color: #00e5ff !important;
+    box-shadow: 0 0 0 3px #00e5ff22 !important;
+}
+.stTextInput label { color: #ffea00 !important; font-weight: 700 !important; font-size: 0.82rem !important; text-transform: uppercase !important; }
+div.stButton > button {
+    width: 100%; padding: 0.85rem;
+    background: linear-gradient(135deg, #00e5ff, #00ff9d);
+    color: #1a1035 !important; font-size: 1rem; font-weight: 900;
+    border: none; border-radius: 14px; cursor: pointer;
+    box-shadow: 0 6px 20px #00e5ff44; margin-top: 0.5rem;
+    transition: all 0.3s ease;
+}
+div.stButton > button:hover { transform: translateY(-2px); box-shadow: 0 10px 28px #00ff9d55; }
+.error-msg {
+    background: #3a0a0a; border: 1.5px solid #ff6b6b;
+    border-radius: 12px; padding: 0.7rem 1rem;
+    color: #ff6b6b; font-weight: 700; font-size: 0.9rem; margin-top: 1rem;
+}
+.logout-btn { text-align: right; margin-bottom: 0.5rem; }
+#MainMenu, footer, header { visibility: hidden; }
+</style>
+"""
+
+# ── Login / Logout logic ───────────────────────────────────────────────────────
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+def do_login(user, pwd):
+    if user in USERS and USERS[user] == pwd:
+        st.session_state.logged_in = True
+        st.session_state.username  = user
+        st.rerun()
+    else:
+        st.session_state.login_error = True
+
+def do_logout():
+    st.session_state.logged_in = False
+    st.session_state.username  = ""
+    st.rerun()
+
+# ── Show Login Page if not logged in ──────────────────────────────────────────
+if not st.session_state.logged_in:
+    st.markdown(LOGIN_CSS, unsafe_allow_html=True)
+    st.markdown('<div class="login-box">', unsafe_allow_html=True)
+    st.markdown('<span class="login-icon">💻</span>', unsafe_allow_html=True)
+    st.markdown('<div class="login-title">Laptop Price Predictor</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-sub">Please login to continue</div>', unsafe_allow_html=True)
+
+    username = st.text_input("👤 Username")
+    password = st.text_input("🔒 Password", type="password")
+
+    if st.button("🚀 Login"):
+        do_login(username, password)
+
+    if st.session_state.get("login_error"):
+        st.markdown('<div class="error-msg">❌ Wrong username or password!</div>', unsafe_allow_html=True)
+        st.session_state.login_error = False
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.stop()
+
 # ── Language ───────────────────────────────────────────────────────────────────
 LANG = {
     "en": {
@@ -196,8 +302,14 @@ model, encoders = load_model()
 df_orig = load_raw()
 CURRENCIES, is_live = fetch_live_rates()
 
-# ── Language toggle ────────────────────────────────────────────────────────────
-lang_choice = st.radio("", ["🇬🇧 English", "🇪🇬 العربية"], horizontal=True)
+# ── Language toggle + logout ─────────────────────────────────────────────────
+top_col1, top_col2 = st.columns([3, 1])
+with top_col1:
+    lang_choice = st.radio("", ["🇬🇧 English", "🇪🇬 العربية"], horizontal=True)
+with top_col2:
+    st.markdown(f"<div style='text-align:right;padding-top:0.4rem;color:#00e5ff;font-weight:700;font-size:0.85rem'>👤 {st.session_state.username}</div>", unsafe_allow_html=True)
+    if st.button("🚪 Logout"):
+        do_logout()
 lang = "ar" if "العربية" in lang_choice else "en"
 L   = LANG[lang]
 rtl = "rtl" if lang == "ar" else ""
