@@ -213,7 +213,53 @@ with col1:
 
 with col2:
     cpu_gen   = st.selectbox(L['cpu'],       sorted(f["CPU_Gen"].unique()))
-    year      = st.selectbox(L['year'],      sorted(f["Year"].unique(), reverse=True))
+    # Year — only show from release year up to last known version year
+    MODEL_YEAR_RANGE = {
+        "Inspiron 15 3520": (2022,2026), "Inspiron 15 5520": (2022,2026),
+        "Inspiron 14 5420": (2022,2026), "XPS 13 9315": (2022,2026),
+        "XPS 15 9520": (2022,2026), "G15 5520": (2022,2026),
+        "Vostro 3520": (2022,2026), "Latitude 5530": (2022,2026),
+        "Pavilion 15 eg2": (2022,2026), "Envy x360 15": (2022,2026),
+        "Envy x360 13": (2022,2026), "Spectre x360 14": (2022,2026),
+        "EliteBook 840 G9": (2022,2026), "Omen 16": (2021,2026),
+        "Victus 15": (2021,2026), "HP 250 G9": (2022,2026),
+        "IdeaPad 3 15": (2021,2026), "IdeaPad 5 15": (2021,2026),
+        "IdeaPad Slim 5": (2022,2026), "ThinkPad E14 Gen4": (2022,2026),
+        "ThinkPad X1 Carbon Gen10": (2022,2026), "Yoga 7 14": (2022,2026),
+        "Legion 5 Gen7": (2022,2024), "Legion 5 Pro Gen7": (2022,2024),
+        "MacBook Air M1": (2020,2023), "MacBook Air M2": (2022,2026),
+        "MacBook Air M2 15": (2023,2026), "MacBook Pro 13 M2": (2022,2023),
+        "MacBook Pro 14 M2": (2023,2026), "MacBook Pro 16 M2": (2023,2026),
+        "VivoBook 15 X1502": (2022,2026), "VivoBook 14 X1402": (2021,2026),
+        "ZenBook 14 UX425": (2021,2023), "ZenBook Pro 15": (2022,2026),
+        "ROG Strix G15": (2021,2026), "TUF Gaming A15": (2021,2026),
+        "TUF Gaming F15": (2021,2026), "ROG Zephyrus G14": (2022,2026),
+        "Aspire 5 A515": (2021,2026), "Aspire 3 A315": (2021,2026),
+        "Swift 3 SF314": (2022,2026), "Swift X SFX14": (2022,2026),
+        "Nitro 5 AN515": (2021,2026), "Predator Helios 300": (2021,2026),
+        "GF63 Thin 12V": (2022,2026), "Katana GF66": (2021,2023),
+        "Raider GE66": (2021,2023), "GS66 Stealth": (2021,2023),
+        "Modern 14 B12M": (2022,2026), "Prestige 14 EVO": (2022,2026),
+        "Creator 15": (2021,2026),
+        "Galaxy Book2": (2022,2023), "Galaxy Book2 Pro": (2022,2023),
+        "Galaxy Book2 Pro 360": (2022,2023), "Galaxy Book3 Pro": (2023,2026),
+        "Galaxy Book3 Ultra": (2023,2026),
+        "MateBook D14 2022": (2022,2026), "MateBook D15 2022": (2022,2026),
+        "MateBook X Pro 2022": (2022,2026), "MateBook 14s": (2021,2026),
+        "MateBook 16s": (2022,2026),
+        "Gram 14 2022": (2022,2026), "Gram 15 2022": (2022,2026),
+        "Gram 16 2022": (2022,2026), "Gram 17 2022": (2022,2026),
+        "Gram 360 14": (2022,2026),
+        "Surface Laptop 5 13": (2022,2026), "Surface Laptop 5 15": (2022,2026),
+        "Surface Pro 9": (2022,2026), "Surface Laptop Go 2": (2022,2026),
+        "Surface Laptop Studio": (2021,2026),
+    }
+    y_start, y_end = MODEL_YEAR_RANGE.get(model_sel, (2019, 2026))
+    all_years      = sorted(f["Year"].unique(), reverse=True)
+    valid_years    = [y for y in all_years if y_start <= y <= y_end]
+    if not valid_years:
+        valid_years = all_years
+    year = st.selectbox(L['year'], valid_years)
     condition = st.selectbox(L['condition'], sorted(df_orig["Condition"].unique()))
     screen    = st.selectbox(L['screen'],    sorted(f["Screen_Size"].unique()))
 
