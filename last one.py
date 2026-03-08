@@ -362,30 +362,28 @@ if st.button(L['button']):
     ].copy()
 
     if not chart_data.empty:
-        new_avg  = chart_data[chart_data["Condition"]=="New"].groupby("Year")["Price"].mean() * rate
-        used_avg = chart_data[chart_data["Condition"]=="Good"].groupby("Year")["Price"].mean() * rate
+        # One line per condition with distinct colors
+        condition_styles = {
+            "New":      {"color": "#00e5ff", "dash": "solid",  "symbol": "circle"},
+            "Like New": {"color": "#00ff9d", "dash": "solid",  "symbol": "diamond"},
+            "Good":     {"color": "#ffea00", "dash": "dot",    "symbol": "square"},
+            "Fair":     {"color": "#ff9f43", "dash": "dashdot","symbol": "triangle-up"},
+            "Poor":     {"color": "#ff6b6b", "dash": "dash",   "symbol": "x"},
+        }
 
         fig = go.Figure()
 
-        if not new_avg.empty:
-            fig.add_trace(go.Scatter(
-                x=new_avg.index.tolist(), y=new_avg.round(0).tolist(),
-                mode="lines+markers",
-                name=L["chart_new"],
-                line=dict(color="#00e5ff", width=3),
-                marker=dict(size=8, color="#00e5ff", symbol="circle"),
-                fill="tozeroy", fillcolor="rgba(0,229,255,0.08)"
-            ))
-
-        if not used_avg.empty:
-            fig.add_trace(go.Scatter(
-                x=used_avg.index.tolist(), y=used_avg.round(0).tolist(),
-                mode="lines+markers",
-                name=L["chart_used"],
-                line=dict(color="#00ff9d", width=3, dash="dot"),
-                marker=dict(size=8, color="#00ff9d", symbol="diamond"),
-                fill="tozeroy", fillcolor="rgba(0,255,157,0.06)"
-            ))
+        for cond, style in condition_styles.items():
+            cond_data = chart_data[chart_data["Condition"] == cond].groupby("Year")["Price"].mean() * rate
+            if not cond_data.empty:
+                fig.add_trace(go.Scatter(
+                    x=cond_data.index.tolist(),
+                    y=cond_data.round(0).tolist(),
+                    mode="lines+markers",
+                    name=cond,
+                    line=dict(color=style["color"], width=2.5, dash=style["dash"]),
+                    marker=dict(size=8, color=style["color"], symbol=style["symbol"]),
+                ))
 
         fig.update_layout(
             title_text=f"{L['chart_title']} — {model_sel}",
