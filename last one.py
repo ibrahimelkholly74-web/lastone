@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import plotly.graph_objects as go
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 
@@ -23,6 +24,8 @@ LANG = {
         "live_rates": "✅ Live exchange rates loaded",
         "fallback_rates": "⚠️ Using cached rates",
         "footer": "Powered by Random Forest · Built with Streamlit",
+        "chart_title": "📈 Price History by Year",
+        "chart_new": "New", "chart_used": "Good Condition",
     },
     "ar": {
         "title": "توقع سعر اللاب توب",
@@ -38,6 +41,8 @@ LANG = {
         "live_rates": "✅ تم تحميل أسعار الصرف الحية",
         "fallback_rates": "⚠️ يتم استخدام أسعار محفوظة",
         "footer": "يعمل بـ Random Forest · مبني بـ Streamlit",
+        "chart_title": "📈 تاريخ الأسعار حسب السنة",
+        "chart_new": "جديد", "chart_used": "حالة جيدة",
     }
 }
 
@@ -345,6 +350,54 @@ if st.button(L['button']):
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# ── Price History Chart ───────────────────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    chart_data = df_orig[
+        (df_orig["Brand"] == brand) &
+        (df_orig["Model"] == model_sel) &
+        (df_orig["RAM"] == ram) &
+        (df_orig["Storage"] == storage)
+    ].copy()
+
+    if not chart_data.empty:
+        new_avg  = chart_data[chart_data["Condition"]=="New"].groupby("Year")["Price"].mean() * rate
+        used_avg = chart_data[chart_data["Condition"]=="Good"].groupby("Year")["Price"].mean() * rate
+
+        fig = go.Figure()
+
+        if not new_avg.empty:
+            fig.add_trace(go.Scatter(
+                x=new_avg.index.tolist(), y=new_avg.round(0).tolist(),
+                mode="lines+markers",
+                name=L["chart_new"],
+                line=dict(color="#00e5ff", width=3),
+                marker=dict(size=8, color="#00e5ff", symbol="circle"),
+                fill="tozeroy", fillcolor="rgba(0,229,255,0.08)"
+            ))
+
+        if not used_avg.empty:
+            fig.add_trace(go.Scatter(
+                x=used_avg.index.tolist(), y=used_avg.round(0).tolist(),
+                mode="lines+markers",
+                name=L["chart_used"],
+                line=dict(color="#00ff9d", width=3, dash="dot"),
+                marker=dict(size=8, color="#00ff9d", symbol="diamond"),
+                fill="tozeroy", fillcolor="rgba(0,255,157,0.06)"
+            ))
+
+        fig.update_layout(
+            title=dict(text=f"{L['chart_title']} — {model_sel}", font=dict(color="#ffffff", size=14), x=0.5),
+            paper_bgcolor="#261e4a", plot_bgcolor="#1a1035",
+            font=dict(color="#ffffff", family="Nunito"),
+            xaxis=dict(title="Year", gridcolor="#333", tickmode="linear", dtick=1, color="#aaa"),
+            yaxis=dict(title=f"Price ({currency_code})", gridcolor="#333", color="#aaa"),
+            legend=dict(bgcolor="#261e4a", bordercolor="#00e5ff44", borderwidth=1),
+            margin=dict(l=20, r=20, t=50, b=20),
+            height=320,
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # ── Footer ─────────────────────────────────────────────────────────────────────
 st.markdown(f'<div class="footer {rtl}">{L["footer"]}</div>', unsafe_allow_html=True)
