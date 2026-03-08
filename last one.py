@@ -11,7 +11,7 @@ st.set_page_config(page_title="Laptop Price Predictor", page_icon="💻", layout
 LANG = {
     "en": {
         "title": "Laptop Price Predictor",
-        "subtitle": "AI-powered price estimation for the Egyptian market",
+        "subtitle": "",
         "section": "📋 Laptop Specifications",
         "brand": "Brand", "model": "Model", "ram": "RAM (GB)",
         "storage": "Storage (GB)", "storage_type": "Storage Type",
@@ -26,7 +26,7 @@ LANG = {
     },
     "ar": {
         "title": "توقع سعر اللاب توب",
-        "subtitle": "تقدير الأسعار بالذكاء الاصطناعي للسوق المصري",
+        "subtitle": "",
         "section": "📋 مواصفات اللاب توب",
         "brand": "الماركة", "model": "الموديل", "ram": "الرام (جيجا)",
         "storage": "التخزين (جيجا)", "storage_type": "نوع التخزين",
