@@ -70,8 +70,8 @@ st.markdown("""
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, [class*="css"] {
     font-family: 'Nunito', sans-serif;
-    background: linear-gradient(135deg, #fff9f0 0%, #fff0f9 50%, #f0f4ff 100%);
-    color: #2d2d3a;
+    background: #1a1035;
+    color: #ffffff;
 }
 .block-container { padding: 2rem 1.5rem 4rem !important; max-width: 760px !important; }
 
@@ -81,7 +81,7 @@ html, body, [class*="css"] {
 @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 .hero h1 {
     font-size: 2.6rem; font-weight: 900;
-    background: linear-gradient(135deg, #ff6b6b, #ffa500, #ff6bcd);
+    background: linear-gradient(135deg, #00e5ff, #00ff9d, #ffea00);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text; line-height: 1.15; margin-bottom: 0.5rem;
 }
@@ -89,71 +89,70 @@ html, body, [class*="css"] {
 /* ── Live badge ── */
 .live-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    background: #f0fff4; border: 1.5px solid #68d391;
+    background: #00ff9d22; border: 1.5px solid #00ff9d;
     border-radius: 20px; padding: 4px 14px;
-    font-size: 0.75rem; font-weight: 700; color: #276749; letter-spacing: 0.04em;
+    font-size: 0.75rem; font-weight: 700; color: #00ff9d; letter-spacing: 0.04em;
 }
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #48bb78; animation: pulse 1.5s infinite; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #00ff9d; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 /* ── Card ── */
 .card {
-    background: #ffffff;
-    border: 2px solid #ffe0f0;
+    background: #261e4a;
+    border: 2px solid #00e5ff44;
     border-radius: 24px;
     padding: 2rem; margin-bottom: 1.5rem;
-    box-shadow: 0 8px 30px #ff6b6b18, 0 2px 8px #ffa50018;
+    box-shadow: 0 8px 32px #00e5ff18;
 }
 .card-title {
     font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #ff6bcd; margin-bottom: 1.2rem;
+    text-transform: uppercase; color: #00e5ff; margin-bottom: 1.2rem;
 }
 
 /* ── Labels ── */
 label, .stSelectbox label {
     font-size: 0.82rem !important; font-weight: 700 !important;
-    color: #f97316 !important; letter-spacing: 0.03em !important; text-transform: uppercase !important;
+    color: #ffea00 !important; letter-spacing: 0.03em !important; text-transform: uppercase !important;
 }
 
 /* ── Selectbox ── */
 div[data-baseweb="select"] > div {
-    background-color: #fff8f0 !important; border: 2px solid #fcd9b0 !important;
-    border-radius: 12px !important; color: #2d2d3a !important;
+    background-color: #1a1035 !important; border: 2px solid #00e5ff44 !important;
+    border-radius: 12px !important; color: #ffffff !important;
     font-size: 0.95rem !important; transition: border-color 0.2s;
 }
-div[data-baseweb="select"] > div:hover { border-color: #ff6b6b !important; }
-div[data-baseweb="select"] > div:focus-within { border-color: #ff6bcd !important; box-shadow: 0 0 0 3px #ff6bcd22 !important; }
-ul[role="listbox"] { background-color: #fffaf5 !important; border: 2px solid #fcd9b0 !important; border-radius: 12px !important; }
-li[role="option"]:hover { background-color: #fff0e0 !important; }
+div[data-baseweb="select"] > div:hover { border-color: #00e5ff !important; }
+div[data-baseweb="select"] > div:focus-within { border-color: #ffea00 !important; box-shadow: 0 0 0 3px #ffea0033 !important; }
+ul[role="listbox"] { background-color: #261e4a !important; border: 2px solid #00e5ff44 !important; border-radius: 12px !important; }
+li[role="option"]:hover { background-color: #00e5ff18 !important; color: #ffffff !important; }
 
 /* ── Button ── */
 div.stButton > button {
     width: 100%; padding: 0.9rem 2rem;
-    background: linear-gradient(135deg, #ff6b6b, #ff9f43, #ff6bcd);
-    background-size: 200% auto;
-    color: #fff; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #00e5ff, #00ff9d);
+    color: #1a1035; font-size: 1.05rem; font-weight: 900; letter-spacing: 0.05em;
     border: none; border-radius: 16px; cursor: pointer;
-    transition: all 0.3s ease; box-shadow: 0 6px 20px #ff6b6b44; margin-top: 0.5rem;
+    transition: all 0.3s ease; box-shadow: 0 6px 24px #00e5ff55; margin-top: 0.5rem;
 }
 div.stButton > button:hover {
     transform: translateY(-3px) scale(1.01);
-    box-shadow: 0 10px 28px #ff6b6b66;
-    background-position: right center;
+    box-shadow: 0 10px 32px #00ff9d66;
+    background: linear-gradient(135deg, #00ff9d, #ffea00);
 }
 
 /* ── Result boxes ── */
 .range-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.2rem; }
 .range-box { border-radius: 20px; padding: 1.3rem 0.8rem; text-align: center; animation: fadeUp 0.4s ease; }
-.range-box.low  { background: linear-gradient(135deg, #e0f7ff, #b3ecff); border: 2px solid #4fc3f7; }
-.range-box.mid  { background: linear-gradient(135deg, #ffe0f5, #ffb3e6); border: 2px solid #f06292; box-shadow: 0 6px 24px #ff6bcd33; }
-.range-box.high { background: linear-gradient(135deg, #fff3e0, #ffe0b2); border: 2px solid #ffa726; }
-.range-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
-.low  .range-label { color: #0288d1; }
-.mid  .range-label { color: #e91e8c; }
-.high .range-label { color: #ef6c00; }
-.range-price { font-family: 'Nunito', sans-serif; font-size: 1.6rem; font-weight: 900; color: #2d2d3a; }
-.range-currency { font-size: 0.72rem; color: #999; margin-top: 0.2rem; font-weight: 600; }
-.result-title { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #ff6bcd; margin-bottom: 0.4rem; text-align: center; }
+.range-box.low  { background: #003d55; border: 2px solid #00e5ff; }
+.range-box.mid  { background: #1a3a1a; border: 2px solid #00ff9d; box-shadow: 0 6px 28px #00ff9d44; }
+.range-box.high { background: #3a3000; border: 2px solid #ffea00; }
+.range-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.low  .range-label { color: #00e5ff; }
+.mid  .range-label { color: #00ff9d; }
+.high .range-label { color: #ffea00; }
+.range-price { font-family: 'Nunito', sans-serif; font-size: 1.7rem; font-weight: 900; color: #ffffff; }
+.range-currency { font-size: 0.72rem; color: #aaaaaa; margin-top: 0.2rem; font-weight: 600; }
+.result-title { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #00e5ff; margin-bottom: 0.4rem; text-align: center; }
 
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
@@ -161,8 +160,8 @@ div.stButton > button:hover {
 .rtl { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif !important; }
 .rtl label, .rtl .card-title, .rtl .result-title { font-family: 'Cairo', sans-serif !important; letter-spacing: 0 !important; }
 .stRadio > div { flex-direction: row !important; gap: 0.5rem; }
-.stRadio label { font-size: 0.85rem !important; color: #ff6b6b !important; font-weight: 700 !important; }
-.footer { text-align: center; color: #bbb; font-size: 0.78rem; margin-top: 3rem; }
+.stRadio label { font-size: 0.85rem !important; color: #00e5ff !important; font-weight: 700 !important; }
+.footer { text-align: center; color: #555; font-size: 0.78rem; margin-top: 3rem; }
 #MainMenu, footer, header { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
