@@ -57,6 +57,48 @@ lang = "ar" if "العربية" in lang_choice else "en"
 L   = LANG[lang]
 rtl = "rtl" if lang == "ar" else ""
 
+@st.cache_data(ttl=86400)
+def fetch_live_rates():
+    try:
+        res  = requests.get("https://open.er-api.com/v6/latest/EGP", timeout=5)
+        data = res.json()
+        if data.get("result") == "success":
+            r = data["rates"]
+            return {"🇪🇬 EGP": 1.0,
+                    "🇺🇸 USD": round(r.get("USD", 0.01990), 6),
+                    "🇪🇺 EUR": round(r.get("EUR", 0.01710), 6),
+                    "🇸🇦 SAR": round(r.get("SAR", 0.07450), 6),
+                    "🇦🇪 AED": round(r.get("AED", 0.07320), 6)}, True
+    except Exception:
+        pass
+    return FALLBACK_RATES, False
+
+CURRENCIES, is_live = fetch_live_rates()
+
+# ── Load & Train ───────────────────────────────────────────────────────────────
+CAT_COLS = ["Brand", "Model", "Storage_Type", "Condition", "GPU", "Touchscreen"]
+
+@st.cache_resource
+def load_model():
+    df = pd.read_excel("hhhhhema.xlsx")
+    encoders = {}
+    for col in CAT_COLS:
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col].astype(str))
+        encoders[col] = le
+    X = df.drop("Price", axis=1)
+    y = df["Price"]
+    mdl = RandomForestRegressor(n_estimators=200, random_state=42, n_jobs=-1)
+    mdl.fit(X, y)
+    return mdl, encoders
+
+@st.cache_data
+def load_raw():
+    return pd.read_excel("hhhhhema.xlsx")
+
+model, encoders = load_model()
+df_orig = load_raw()
+
 # ── Hero ───────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="hero {rtl}">
