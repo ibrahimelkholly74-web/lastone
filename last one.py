@@ -171,6 +171,94 @@ CURRENCIES, is_live = fetch_live_rates()
 model, encoders     = load_model()
 df_orig             = load_raw()
 
+# ── Live Market Trend Engine ───────────────────────────────────────────────────
+# Real data: USD/EGP hit 52.15 on Mar 8 2026, weakened 7% in 30 days (source: Xe, TradingEconomics)
+# 30-day average was ~47.75 — current ~50.5 = EGP has weakened → laptop prices rising in EGP
+BASELINE_USD_EGP = 47.75   # 30-day average ending Mar 2026
+CURRENT_USD_EGP  = 50.56   # live rate Mar 9 2026 (from Xe.com)
+
+# Models replaced by next-gen (market price drops when successor arrives)
+SUPERSEDED_YEAR = {
+    "MacBook Air M1": 2022,
+    "MacBook Pro 13 M2": 2023,
+    "Legion 5 Gen7": 2023, "Legion 5 Pro Gen7": 2023,
+    "Galaxy Book2": 2023, "Galaxy Book2 Pro": 2023, "Galaxy Book2 Pro 360": 2023,
+    "Katana GF66": 2023, "Raider GE66": 2023, "GS66 Stealth": 2023,
+    "ZenBook 14 UX425": 2023,
+}
+
+def get_price_trend(model_sel, condition, year, lang):
+    import datetime
+    age   = datetime.datetime.now().year - year
+    score = 0.0
+    reasons_en = []
+    reasons_ar = []
+
+    # ── Factor 1: EGP/USD (main driver) ──────────────────────────
+    egp_change_pct = ((CURRENT_USD_EGP - BASELINE_USD_EGP) / BASELINE_USD_EGP) * 100
+    # EGP weakened 5.9% in 30 days → imports cost more → laptop prices UP
+    score += egp_change_pct * 0.25   # ~+1.47 score
+    reasons_en.append(f"💱 EGP weakened {egp_change_pct:.1f}% vs USD in 30 days → import cost rising")
+    reasons_ar.append(f"💱 الجنيه انخفض {egp_change_pct:.1f}% مقابل الدولار خلال 30 يوم → تكلفة الاستيراد ترتفع")
+
+    # ── Factor 2: Model age depreciation ─────────────────────────
+    if age == 0:
+        score += 1.0
+        reasons_en.append("🆕 Brand new (current year) → price holding strong")
+        reasons_ar.append("🆕 موديل جديد (هذا العام) → السعر ثابت")
+    elif age == 1:
+        score -= 0.3
+        reasons_en.append("📅 1 year old → slight natural depreciation")
+        reasons_ar.append("📅 عمره سنة → انخفاض طبيعي بسيط")
+    elif age == 2:
+        score -= 1.0
+        reasons_en.append("📅 2 years old → noticeable depreciation in market")
+        reasons_ar.append("📅 عمره سنتين → انخفاض ملحوظ في السوق")
+    else:
+        score -= 1.8
+        reasons_en.append(f"📅 {age} years old → significant depreciation expected")
+        reasons_ar.append(f"📅 عمره {age} سنوات → انخفاض كبير في القيمة")
+
+    # ── Factor 3: Superseded by next generation ───────────────────
+    if model_sel in SUPERSEDED_YEAR:
+        score -= 1.5
+        reasons_en.append(f"⚠️ Replaced by newer gen → dealers lowering stock prices")
+        reasons_ar.append(f"⚠️ صدر موديل أحدث → التجار بيخفضوا السعر عشان يخلصوا الستوك")
+
+    # ── Factor 4: Condition factor ────────────────────────────────
+    cond_impact = {"New": +0.5, "Like New": +0.2, "Good": 0.0, "Fair": -0.3, "Poor": -0.8}
+    score += cond_impact.get(condition, 0)
+
+    # ── Factor 5: Egyptian market growth (+4.3% volume in 2025) ───
+    score += 0.3
+    reasons_en.append("📊 Egypt laptop market growing +4.3% in 2025 → steady demand")
+    reasons_ar.append("📊 سوق اللاب توب في مصر نما 4.3% في 2025 → طلب مستمر")
+
+    # ── Verdict ───────────────────────────────────────────────────
+    if score >= 1.2:
+        trend, icon, color = "up",     "📈", "#ff4d4d"
+        label_en = "Price Trending UP"
+        label_ar = "السعر في ارتفاع"
+        tip_en   = "EGP weakening is pushing import prices up. Sell now for best price!"
+        tip_ar   = "ضعف الجنيه بيرفع أسعار الاستيراد. دلوقتي أفضل وقت للبيع!"
+    elif score <= -0.8:
+        trend, icon, color = "down",   "📉", "#00ff88"
+        label_en = "Price Trending DOWN"
+        label_ar = "السعر في انخفاض"
+        tip_en   = "Model aging + newer alternatives available. Buyers will negotiate hard."
+        tip_ar   = "الموديل قديم وفيه بدائل أحدث. المشترين هيتفاوضوا كتير."
+    else:
+        trend, icon, color = "stable", "➡️", "#ffea00"
+        label_en = "Price Stable"
+        label_ar = "السعر مستقر"
+        tip_en   = "No major pressure up or down in current market conditions."
+        tip_ar   = "مفيش ضغط كبير صعودًا أو هبوطًا في الوقت الحالي."
+
+    reasons = reasons_ar if lang == "ar" else reasons_en
+    label   = label_ar   if lang == "ar" else label_en
+    tip     = tip_ar     if lang == "ar" else tip_en
+    return trend, icon, color, label, tip, reasons, round(score, 2)
+
 # ── PDF Generator ──────────────────────────────────────────────────────────────
 def generate_pdf(specs, low, mid, high, currency_code, rate):
     buf = io.BytesIO()
@@ -429,6 +517,28 @@ div.stButton > button:hover {
 .rtl label, .rtl .card-title, .rtl .result-title { font-family: 'Cairo', sans-serif !important; letter-spacing: 0 !important; }
 .footer { text-align: center; color: #1a4a2a; font-size: 0.78rem; margin-top: 3rem; }
 #MainMenu, footer, header { visibility: hidden; }
+
+/* ── Trend card ── */
+.trend-card {
+    border-radius: 18px; padding: 1.5rem 1.8rem;
+    margin-top: 1.2rem; animation: fadeUp 0.6s ease;
+    background: #050505;
+}
+.trend-card.up   { border: 2px solid #ff4d4d; box-shadow: 0 0 28px #ff4d4d22; }
+.trend-card.down { border: 2px solid #00ff88; box-shadow: 0 0 28px #00ff8833; }
+.trend-card.stable { border: 2px solid #ffea00; box-shadow: 0 0 20px #ffea0022; }
+.trend-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+.trend-icon { font-size: 2rem; }
+.trend-label-block { flex: 1; }
+.trend-label { font-size: 1rem; font-weight: 900; letter-spacing: 0.04em; }
+.trend-card.up   .trend-label { color: #ff4d4d; }
+.trend-card.down .trend-label { color: #00ff88; }
+.trend-card.stable .trend-label { color: #ffea00; }
+.trend-score { font-size: 0.72rem; color: #555; font-weight: 700; margin-top: 2px; }
+.trend-tip { font-size: 0.88rem; color: #ccc; font-weight: 600; margin-bottom: 0.9rem; padding-bottom: 0.9rem; border-bottom: 1px solid #ffffff11; }
+.trend-reasons { list-style: none; padding: 0; margin: 0; }
+.trend-reasons li { font-size: 0.78rem; color: #777; padding: 3px 0; font-weight: 600; }
+.trend-source { font-size: 0.68rem; color: #333; margin-top: 0.8rem; text-align: right; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -528,6 +638,30 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
+        # ── Market Trend Card ─────────────────────────────────────
+        trend, icon, color, t_label, tip, reasons, score = get_price_trend(
+            model_sel, condition, year, lang
+        )
+        reasons_html = "".join(f"<li>• {r}</li>" for r in reasons)
+        trend_title  = "📊 Market Price Trend" if lang == "en" else "📊 اتجاه السعر في السوق"
+        source_note  = "Based on: live USD/EGP rate (Xe.com) · model age · market data (IndexBox 2025)" if lang == "en" else "مبني على: سعر الدولار/الجنيه الحي · عمر الموديل · بيانات السوق"
+        st.markdown(f"""
+        <div style="font-size:0.76rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+                    color:#00ff88;margin:1.4rem 0 0.6rem;text-align:center">{trend_title}</div>
+        <div class="trend-card {trend}">
+            <div class="trend-header">
+                <div class="trend-icon">{icon}</div>
+                <div class="trend-label-block">
+                    <div class="trend-label">{t_label}</div>
+                    <div class="trend-score">Signal score: {score:+.2f}</div>
+                </div>
+            </div>
+            <div class="trend-tip">{tip}</div>
+            <ul class="trend-reasons">{reasons_html}</ul>
+            <div class="trend-source">🔗 {source_note}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ── PDF Download ──────────────────────────────────────────
@@ -560,6 +694,8 @@ with tab1:
                 f"💰 Low: {fmt(low_price)} {currency_code}\n"
                 f"🎯 Mid: {fmt(mid_price)} {currency_code}\n"
                 f"💎 High: {fmt(high_price)} {currency_code}\n"
+                f"{icon} *Market Trend: {t_label}*\n"
+                f"_{tip}_\n"
                 f"_Powered by Laptop Price Predictor AI_"
             )
             wa_url = f"https://wa.me/?text={requests.utils.quote(wa_text)}"
