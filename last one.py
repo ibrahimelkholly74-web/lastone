@@ -8,8 +8,50 @@ from sklearn.ensemble import RandomForestRegressor
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Laptop Price Predictor", page_icon="💻", layout="centered")
 
-# ── Language toggle ────────────────────────────────────────────────────────────
+# ── Language ───────────────────────────────────────────────────────────────────
+LANG = {
+    "en": {
+        "title": "Laptop Price Predictor",
+        "subtitle": "",
+        "section": "📋 Laptop Specifications",
+        "brand": "Brand", "model": "Model", "ram": "RAM (GB)",
+        "storage": "Storage (GB)", "storage_type": "Storage Type",
+        "cpu": "CPU Generation", "year": "Year", "condition": "Condition",
+        "screen": "Screen Size (inch)", "gpu": "GPU", "touch": "Touchscreen",
+        "button": "⚡ Predict Price", "est_label": "✨ Estimated Price Range",
+        "low": "Low", "mid": "Mid", "high": "High",
+        "currency_label": "💱 Currency",
+        "live_rates": "✅ Live exchange rates loaded",
+        "fallback_rates": "⚠️ Using cached rates",
+        "footer": "Powered by Random Forest · Built with Streamlit",
+        "chart_title": "📈 Price History by Year",
+        "chart_new": "New", "chart_used": "Good Condition",
+    },
+    "ar": {
+        "title": "توقع سعر اللاب توب",
+        "subtitle": "",
+        "section": "📋 مواصفات اللاب توب",
+        "brand": "الماركة", "model": "الموديل", "ram": "الرام (جيجا)",
+        "storage": "التخزين (جيجا)", "storage_type": "نوع التخزين",
+        "cpu": "جيل المعالج", "year": "سنة الصنع", "condition": "الحالة",
+        "screen": "حجم الشاشة (إنش)", "gpu": "كارت الشاشة", "touch": "شاشة لمس",
+        "button": "⚡ توقع السعر", "est_label": "✨ نطاق السعر المتوقع",
+        "low": "الأدنى", "mid": "المتوسط", "high": "الأعلى",
+        "currency_label": "💱 العملة",
+        "live_rates": "✅ تم تحميل أسعار الصرف الحية",
+        "fallback_rates": "⚠️ يتم استخدام أسعار محفوظة",
+        "footer": "يعمل بـ Random Forest · مبني بـ Streamlit",
+        "chart_title": "📈 تاريخ الأسعار حسب السنة",
+        "chart_new": "جديد", "chart_used": "حالة جيدة",
+    }
+}
 
+FALLBACK_RATES = {
+    "🇪🇬 EGP": 1.0, "🇺🇸 USD": 0.01990,
+    "🇪🇺 EUR": 0.01710, "🇸🇦 SAR": 0.07450, "🇦🇪 AED": 0.07320,
+}
+
+# ── Language toggle ────────────────────────────────────────────────────────────
 lang_choice = st.radio("", ["🇬🇧 English", "🇪🇬 العربية"], horizontal=True)
 lang = "ar" if "العربية" in lang_choice else "en"
 L   = LANG[lang]
