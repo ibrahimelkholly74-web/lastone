@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import requests
-import plotly.graph_objects as go
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 
@@ -12,7 +11,6 @@ st.set_page_config(page_title="Laptop Price Predictor", page_icon="💻", layout
 LANG = {
     "en": {
         "title": "Laptop Price Predictor",
-        "subtitle": "",
         "section": "📋 Laptop Specifications",
         "brand": "Brand", "model": "Model", "ram": "RAM (GB)",
         "storage": "Storage (GB)", "storage_type": "Storage Type",
@@ -24,12 +22,9 @@ LANG = {
         "live_rates": "✅ Live exchange rates loaded",
         "fallback_rates": "⚠️ Using cached rates",
         "footer": "Powered by Random Forest · Built with Streamlit",
-        "chart_title": "📈 Price History by Year",
-        "chart_new": "New", "chart_used": "Good Condition",
     },
     "ar": {
         "title": "توقع سعر اللاب توب",
-        "subtitle": "",
         "section": "📋 مواصفات اللاب توب",
         "brand": "الماركة", "model": "الموديل", "ram": "الرام (جيجا)",
         "storage": "التخزين (جيجا)", "storage_type": "نوع التخزين",
@@ -41,8 +36,6 @@ LANG = {
         "live_rates": "✅ تم تحميل أسعار الصرف الحية",
         "fallback_rates": "⚠️ يتم استخدام أسعار محفوظة",
         "footer": "يعمل بـ Random Forest · مبني بـ Streamlit",
-        "chart_title": "📈 تاريخ الأسعار حسب السنة",
-        "chart_new": "جديد", "chart_used": "حالة جيدة",
     }
 }
 
@@ -50,12 +43,6 @@ FALLBACK_RATES = {
     "🇪🇬 EGP": 1.0, "🇺🇸 USD": 0.01990,
     "🇪🇺 EUR": 0.01710, "🇸🇦 SAR": 0.07450, "🇦🇪 AED": 0.07320,
 }
-
-# ── Language toggle ────────────────────────────────────────────────────────────
-lang_choice = st.radio("", ["🇬🇧 English", "🇪🇬 العربية"], horizontal=True)
-lang = "ar" if "العربية" in lang_choice else "en"
-L   = LANG[lang]
-rtl = "rtl" if lang == "ar" else ""
 
 @st.cache_data(ttl=86400)
 def fetch_live_rates():
@@ -73,9 +60,6 @@ def fetch_live_rates():
         pass
     return FALLBACK_RATES, False
 
-CURRENCIES, is_live = fetch_live_rates()
-
-# ── Load & Train ───────────────────────────────────────────────────────────────
 CAT_COLS = ["Brand", "Model", "Storage_Type", "Condition", "GPU", "Touchscreen"]
 
 @st.cache_resource
@@ -96,15 +80,131 @@ def load_model():
 def load_raw():
     return pd.read_excel("hhhhhema.xlsx")
 
-model, encoders = load_model()
-df_orig = load_raw()
+CURRENCIES, is_live = fetch_live_rates()
+model, encoders     = load_model()
+df_orig             = load_raw()
+
+# ── CSS ────────────────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, [class*="css"], .stApp {
+    font-family: 'Nunito', sans-serif;
+    background-color: #000000 !important;
+    color: #00ff88 !important;
+}
+.block-container { padding: 2rem 1.5rem 4rem !important; max-width: 780px !important; }
+
+.hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
+.hero-icon { font-size: 3.2rem; display: block; margin-bottom: 0.4rem; animation: bounce 2s infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.hero h1 {
+    font-size: 2.4rem; font-weight: 900;
+    background: linear-gradient(135deg, #00ff88, #00e5ff, #00ff88);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1.15;
+}
+
+.live-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #001a0d; border: 1.5px solid #00ff88;
+    border-radius: 20px; padding: 4px 14px;
+    font-size: 0.75rem; font-weight: 700; color: #00ff88;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #00ff88; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.card {
+    background: #0a0a0a; border: 1.5px solid #00ff8844;
+    border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem;
+    box-shadow: 0 0 30px #00ff8811;
+}
+.card-title {
+    font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #00ff88; margin-bottom: 1.2rem;
+}
+
+label, .stSelectbox label {
+    font-size: 0.82rem !important; font-weight: 700 !important;
+    color: #00cc66 !important; letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #0d0d0d !important; border: 1.5px solid #00ff8844 !important;
+    border-radius: 10px !important; color: #00ff88 !important;
+    font-size: 0.95rem !important; transition: all 0.2s;
+}
+div[data-baseweb="select"] > div:hover { border-color: #00ff88 !important; box-shadow: 0 0 10px #00ff8833 !important; }
+div[data-baseweb="select"] > div:focus-within { border-color: #00ff88 !important; box-shadow: 0 0 0 3px #00ff8822 !important; }
+ul[role="listbox"] { background-color: #0a0a0a !important; border: 1.5px solid #00ff8844 !important; border-radius: 10px !important; }
+li[role="option"] { color: #00ff88 !important; }
+li[role="option"]:hover { background-color: #001a0d !important; }
+
+.stRadio > div { flex-direction: row !important; gap: 0.5rem; }
+.stRadio label { color: #00ff88 !important; font-weight: 700 !important; font-size: 0.88rem !important; }
+
+div.stButton > button {
+    width: 100%; padding: 0.9rem 2rem;
+    background: #000000 !important;
+    color: #00ff88 !important; font-size: 1.05rem; font-weight: 900; letter-spacing: 0.06em;
+    border: 2px solid #00ff88 !important; border-radius: 14px; cursor: pointer;
+    transition: all 0.25s ease; box-shadow: 0 0 20px #00ff8833; margin-top: 0.5rem;
+}
+div.stButton > button:hover {
+    background: #00ff88 !important; color: #000000 !important;
+    transform: translateY(-2px); box-shadow: 0 0 40px #00ff8877;
+}
+
+.stAlert { background: #001a0d !important; border: 1px solid #00ff8844 !important; color: #00ff88 !important; border-radius: 10px !important; }
+
+.result-title {
+    font-size: 0.82rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #00ff88;
+    margin: 1.5rem 0 1rem; text-align: center;
+}
+.range-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
+.range-box {
+    border-radius: 18px; padding: 2rem 1rem;
+    text-align: center; animation: fadeUp 0.5s ease;
+    background: #050505;
+}
+.range-box.low  { border: 2px solid #0088ff; box-shadow: 0 0 24px #0088ff22; }
+.range-box.mid  { border: 2px solid #00ff88; box-shadow: 0 0 36px #00ff8844; }
+.range-box.high { border: 2px solid #00ffcc; box-shadow: 0 0 24px #00ffcc22; }
+.range-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.7rem; }
+.low  .range-label { color: #0088ff; }
+.mid  .range-label { color: #00ff88; }
+.high .range-label { color: #00ffcc; }
+.range-price { font-family: 'Nunito', sans-serif; font-size: 2rem; font-weight: 900; line-height: 1; }
+.low  .range-price { color: #0088ff; }
+.mid  .range-price { color: #00ff88; }
+.high .range-price { color: #00ffcc; }
+.range-currency { font-size: 0.75rem; margin-top: 0.4rem; font-weight: 700; color: #1a5a3a; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+.rtl { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif !important; }
+.rtl label, .rtl .card-title, .rtl .result-title { font-family: 'Cairo', sans-serif !important; letter-spacing: 0 !important; }
+
+.footer { text-align: center; color: #1a4a2a; font-size: 0.78rem; margin-top: 3rem; }
+#MainMenu, footer, header { visibility: hidden; }
+</style>
+""", unsafe_allow_html=True)
+
+# ── Language toggle ────────────────────────────────────────────────────────────
+lang_choice = st.radio("", ["🇬🇧 English", "🇪🇬 العربية"], horizontal=True)
+lang = "ar" if "العربية" in lang_choice else "en"
+L   = LANG[lang]
+rtl = "rtl" if lang == "ar" else ""
 
 # ── Hero ───────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="hero {rtl}">
     <span class="hero-icon">💻</span>
     <h1>{L['title']}</h1>
-    <p>{L['subtitle']}</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -129,7 +229,6 @@ with col1:
     models_list = sorted(df_orig[df_orig["Brand"] == brand]["Model"].unique())
     model_sel   = st.selectbox(L['model'], models_list)
 
-    # Filter all options strictly by Brand + Model
     filtered = df_orig[(df_orig["Brand"] == brand) & (df_orig["Model"] == model_sel)]
     f        = filtered if not filtered.empty else df_orig
 
@@ -138,8 +237,8 @@ with col1:
     storage_type = st.selectbox(L['storage_type'], sorted(f["Storage_Type"].unique()))
 
 with col2:
-    cpu_gen   = st.selectbox(L['cpu'],       sorted(f["CPU_Gen"].unique()))
-    # Year — only show from release year up to last known version year
+    cpu_gen = st.selectbox(L['cpu'], sorted(f["CPU_Gen"].unique()))
+
     MODEL_YEAR_RANGE = {
         "Inspiron 15 3520": (2022,2026), "Inspiron 15 5520": (2022,2026),
         "Inspiron 14 5420": (2022,2026), "XPS 13 9315": (2022,2026),
@@ -185,18 +284,16 @@ with col2:
     valid_years    = [y for y in all_years if y_start <= y <= y_end]
     if not valid_years:
         valid_years = all_years
-    year = st.selectbox(L['year'], valid_years)
+
+    year      = st.selectbox(L['year'],      valid_years)
     condition = st.selectbox(L['condition'], sorted(df_orig["Condition"].unique()))
     screen    = st.selectbox(L['screen'],    sorted(f["Screen_Size"].unique()))
 
-    # GPU — only real options for this brand+model
     gpu_options = sorted(f["GPU"].unique())
     gpu         = st.selectbox(L['gpu'], gpu_options)
 
-    # Touchscreen — disabled with "No" if model never has touchscreen
-    touch_vals  = f["Touchscreen"].unique()
-    has_touch   = "Yes" in touch_vals
-    only_touch  = list(touch_vals) == ["Yes"] or list(touch_vals) == ["Yes"]
+    touch_vals = f["Touchscreen"].unique()
+    has_touch  = "Yes" in touch_vals
     if has_touch:
         touchscreen = st.selectbox(L['touch'], sorted(touch_vals))
     else:
@@ -225,7 +322,7 @@ if st.button(L['button']):
     mid_price  = model.predict(new_data)[0]
     low_price  = mid_price * 0.88
     high_price = mid_price * 1.12
-    fmt = lambda v: f"{v * rate:,.0f}"
+    fmt        = lambda v: f"{v * rate:,.0f}"
 
     st.markdown(f'<div class="result-title">{L["est_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f"""
@@ -247,64 +344,6 @@ if st.button(L['button']):
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-# ── Price History Chart ───────────────────────────────────────────────────────
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    chart_data = df_orig[
-        (df_orig["Brand"] == brand) &
-        (df_orig["Model"] == model_sel) &
-        (df_orig["RAM"] == ram) &
-        (df_orig["Storage"] == storage)
-    ].copy()
-
-    if not chart_data.empty:
-        # One line per condition with distinct colors
-        condition_styles = {
-            "New":      {"color": "#00e5ff", "dash": "solid",  "symbol": "circle"},
-            "Like New": {"color": "#00ff9d", "dash": "solid",  "symbol": "diamond"},
-            "Good":     {"color": "#ffea00", "dash": "dot",    "symbol": "square"},
-            "Fair":     {"color": "#ff9f43", "dash": "dashdot","symbol": "triangle-up"},
-            "Poor":     {"color": "#ff6b6b", "dash": "dash",   "symbol": "x"},
-        }
-
-        fig = go.Figure()
-
-        for cond, style in condition_styles.items():
-            cond_data = chart_data[chart_data["Condition"] == cond].groupby("Year")["Price"].mean() * rate
-            if not cond_data.empty:
-                fig.add_trace(go.Scatter(
-                    x=cond_data.index.tolist(),
-                    y=cond_data.round(0).tolist(),
-                    mode="lines+markers",
-                    name=cond,
-                    line=dict(color=style["color"], width=2.5, dash=style["dash"]),
-                    marker=dict(size=8, color=style["color"], symbol=style["symbol"]),
-                ))
-
-        fig.update_layout(
-            title_text=f"{L['chart_title']} — {model_sel}",
-            title_x=0.5,
-            title_font_color="#ffffff",
-            title_font_size=14,
-            paper_bgcolor="#261e4a",
-            plot_bgcolor="#1a1035",
-            font_color="#ffffff",
-            font_family="Nunito",
-            xaxis_title="Year",
-            xaxis_gridcolor="#333",
-            xaxis_tickmode="linear",
-            xaxis_dtick=1,
-            xaxis_color="#aaa",
-            yaxis_title=f"Price ({currency_code})",
-            yaxis_gridcolor="#333",
-            yaxis_color="#aaa",
-            legend_bgcolor="#261e4a",
-            legend_borderwidth=1,
-            margin=dict(l=20, r=20, t=50, b=20),
-            height=320,
-        )
-        st.plotly_chart(fig, use_container_width=True)
 
 # ── Footer ─────────────────────────────────────────────────────────────────────
 st.markdown(f'<div class="footer {rtl}">{L["footer"]}</div>', unsafe_allow_html=True)
